@@ -8,9 +8,9 @@ This is pretty easy - just create an `ssh` file on the mountable SD card after y
 
 ## 2. Adding initialization script
 
-Next we'll modify the `cmdline.txt` file on the SD Card to run our initialization script - append the following to the `cmdline.txt` file:
+Next we'll modify the `cmdline.txt` file on the SD Card to run our initialization script - modify the following in the `cmdline.txt` file:
 
-`init=/boot/boot_init.sh`
+`init=/bin/bash -c "mount -t proc proc /proc; mount -t sysfs sys /sys; mount /boot; source /boot/boot_init.sh"`
 
 With that in place, also copy over the `boot_init.sh` file from this directory onto the SD Card.
 
