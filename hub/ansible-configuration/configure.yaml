@@ -1,0 +1,238 @@
+---
+- name: Configure Autogrow Hub
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Include Variables
+      include_vars: vars/main.yaml
+
+    - name: Check if FS is expandable
+      shell: "raspi-config nonint get_can_expand"
+      register: fs_filled
+
+    - name: Expand file system
+      shell: "raspi-config nonint do_expand_rootfs"
+      when: fs_filled.stdout != "0" and expand_filesystem|bool
+
+    - name: Update raspi-config
+      apt:
+        name: raspi-config
+        update_cache: yes
+        state: latest
+        cache_valid_time: 3600
+      when: update_raspi_config|bool
+
+    - name: Get hostname
+      shell: "raspi-config nonint get_hostname"
+      register: pi_hostname
+      changed_when: False
+
+    - name: Print current hostname
+      debug:
+        msg: "Current hostname: {{ pi_hostname.stdout }}"
+
+    - name: Change hostname
+      shell: "raspi-config nonint do_hostname {{ hostname }}"
+      when: pi_hostname.stdout != hostname
+
+    - name: Configure Hostname
+      hostname:
+        name: "{{ hostname }}"
+      when: pi_hostname.stdout != hostname
+
+    - name: Add hostname to hosts file
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.0\.1[ \t]+localhost'
+        line: "127.0.0.1 localhost {{ hostname }}"
+        state: present
+      when: pi_hostname.stdout != hostname
+
+    - name: Create password hash for pi User
+      shell: "mkpasswd --method=sha-512 {{ pi_user_new_password }}"
+      register: mkpasswd_pi_out
+      when: change_pi_user_password|bool
+
+    - name: Change local pi user password
+      user:
+        name: pi
+        password: "{{ mkpasswd_pi_out.stdout }}"
+        update_password: always
+      when: change_pi_user_password|bool
+
+    - name: Check current locale
+      lineinfile:
+        path: /etc/default/locale
+        line: "LANG={{ locale }}"
+        state: present
+      check_mode: yes
+      register: locale_config
+
+    - name: Configure locale
+      shell: "raspi-config nonint do_change_locale {{ locale }}"
+      when: locale_config is changed
+
+    - name: Check current keyboard config
+      lineinfile:
+        path: /etc/default/keyboard
+        line: 'XKBLAYOUT="{{ keyboard_layout }}"'
+        state: present
+      check_mode: yes
+      register: keyboard_config
+
+    - name: Configure keyboard
+      shell: "raspi-config nonint do_configure_keyboard {{ keyboard_layout }}"
+      when: keyboard_config is changed
+
+    - name: Get current timezone
+      shell: cat /etc/timezone
+      register: current_timezone
+
+    - name: Configure timezone
+      shell: "raspi-config nonint do_change_timezone {{ timezone }}"
+      when: current_timezone.stdout != timezone
+
+    - name: Configure WLAN Country
+      template:
+        src: wpa_supplicant.conf.j2
+        dest: /etc/wpa_supplicant/wpa_supplicant.conf
+        backup: yes
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Enable Wifi
+      shell: rfkill unblock wlan
+
+    - name: Update System
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+      when: update_system|bool
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Install base packages
+      apt:
+        name: "{{ base_packages }}"
+        state: latest
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Create password hash for Autogrow Admin User
+      shell: "mkpasswd --method=sha-512 {{ agadmin_user_password }}"
+      register: mkpasswd_out
+      when: create_agadmin_user|bool
+
+    - name: Add Autogrow Admin User
+      user:
+        name: agadmin
+        password: "{{ mkpasswd_out.stdout }}"
+        group: sudo
+      when: create_agadmin_user|bool
+
+    - name: Touch /etc/ethers file
+      file:
+        path: /etc/ethers
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Get WLAN0 MAC Address
+      debug:
+        msg: "{{ hostvars[inventory_hostname].ansible_wlan0.macaddress }}"
+      register: mac_address
+
+    - name: Split MAC Address
+      debug:
+        msg: "{{ mac_address.msg.split(':') }}"
+      register: split_mac
+
+    - name: Put it together and set a fact
+      set_fact:
+        wlan0_mac_suffix: "{{ split_mac.msg[-2:] | join('') }}"
+
+    - name: Template over net.ipv4 forwarding file
+      template:
+        src: routed-ap.conf.j2
+        dest: /etc/sysctl.d/routed-ap.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Template over the iptables.ipv4.nat file
+      template:
+        src: iptables.ipv4.nat.j2
+        dest: /etc/iptables.ipv4.nat
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Enable iptables-restore in rc.local
+      lineinfile:
+        path: /etc/rc.local
+        line: "iptables-restore < /etc/iptables.ipv4.nat"
+        insertbefore: "exit 0"
+        state: present
+        backup: yes
+
+    - name: Template over the hostapd.conf
+      template:
+        src: hostapd.conf.j2
+        dest: /etc/hostapd/hostapd.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Template over the /etc/default/hostapd file
+      template:
+        src: default-hostapd.j2
+        dest: /etc/default/hostapd
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Unmask, Enable, and Start Hostapd
+      systemd:
+        name: hostapd
+        enabled: yes
+        state: started
+        masked: no
+
+    - name: Template over dnsmasq.conf
+      template:
+        src: dnsmasq.conf.j2
+        dest: /etc/dnsmasq.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Template over dhcpcd.conf
+      template:
+        src: dhcpcd.conf.j2
+        dest: /etc/dhcpcd.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Remove dnsmasq default systemd file
+      file:
+        path: /etc/systemd/system/multi-user.target.wants/dnsmasq.service
+        state: absent
+
+    - name: Template over dnsmasq systemd file to bluetooth-target
+      template:
+        src: dnsmasq.service.j2
+        dest: /etc/systemd/system/bluetooth.target.wants/dnsmasq.service
+
+    - name: Reload systemd daemon config
+      systemd:
+        daemon_reload: yes
+
+    - name: Reboot
+      reboot:
+        reboot_timeout: 3600

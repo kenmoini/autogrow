@@ -1,0 +1,14 @@
+server=/{{ local_domain }}/{{ ap_static_ip_address }}
+local=/{{ local_domain }}/
+interface={{ wlan_interface }}
+except-interface={{ eth_interface }}
+bind-interfaces
+expand-hosts
+domain={{ local_domain }}
+dhcp-range={{ ap_dhcp_start_range }},{{ ap_dhcp_end_range }},{{ ap_dhcp_subnet_mask }},12h
+address=/hub.{{ local_domain }}/{{ ap_static_ip_address }}
+address=/{{ hostname }}.{{ local_domain }}/{{ ap_static_ip_address }}
+read-ethers
+dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+dhcp-mac=set:client_is_a_pi,B8:27:EB:*:*:*
+dhcp-reply-delay=tag:client_is_a_pi,2

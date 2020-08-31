@@ -1,0 +1,43 @@
+---
+hostname: ag-hub
+
+change_pi_user_password: True
+pi_user_new_password: somethingSecure
+
+# Find your country code here: https://en.wikipedia.org/wiki/ISO_3166-1
+country_code: US
+locale: "en_US.UTF-8"
+timezone: "America/New_York"
+keyboard_layout: "en"
+
+eth_interface: eth0
+wlan_interface: wlan0
+
+ap_password: autogrow
+
+ap_static_ip_address: "192.168.24.1"
+ap_static_ip_cidr: "24"
+
+ap_dhcp_start_range: "192.168.24.50"
+ap_dhcp_end_range: "192.168.24.100"
+ap_dhcp_subnet_mask: "255.255.255.0"
+
+# Do not edit past these lines unless you know what you're doing and/or want to break things
+local_domain: aghub-local
+
+update_raspi_config: True
+update_system: True
+
+expand_filesystem: True
+
+create_agadmin_user: True
+agadmin_user_password: autogrow
+
+base_packages:
+  - hostapd
+  - dnsmasq
+  - avrdude
+  - avahi-daemon
+  - whois
+
+ap_channel: 7
