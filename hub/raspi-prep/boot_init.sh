@@ -11,3 +11,5 @@ touch /home/pi/.ssh/authorized_keys
 grep -q -F "$PUB_KEY" /home/pi/.ssh/authorized_keys 2>/dev/null || echo "$PUB_KEY" >> /home/pi/.ssh/authorized_keys
 
 chown -R pi:pi /home/pi/.ssh
+
+exec /usr/lib/raspi-config/init_resize.sh
