@@ -132,6 +132,7 @@
         name: agadmin
         password: "{{ mkpasswd_out.stdout }}"
         group: sudo
+        update_password: always
       when: create_agadmin_user|bool
 
     - name: Touch /etc/ethers file
