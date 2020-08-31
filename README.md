@@ -22,10 +22,10 @@ Setting up Autogrow requires Ansible on your local PC and is as follows:
 
 1. Get Raspberry Pi 3 B+ or better with at least a 16GB SD Card
 2. Flash Raspberry Pi OS to the SD Card
-3. Create a `/boot/ssh` file on the SD Card in order to Enable SSH
-4. Attach the Raspberry Pi to your network via Ethernet and add your SSH Pub Key to the pi user
-5. Run the `hub/ansible-configuration/configure.yaml` Ansible Playbook
-6. Connect a Spoke device to the Raspberry Pi
+3. Follow the instructions in `hub/raspi-prep/README.md` to pre-configure the connection requirements.
+4. Attach the Raspberry Pi to your network via Ethernet
+5. Run the `hub/ansible-configuration/configure.yaml` Ansible Playbook on your local PC
+6. Connect a Spoke device to the Raspberry Pi via FTDI Adapter
 7. Connect your PC to the Wifi Network provided by the hub and access the web interface by navigating to `http://hub.aghub-local`
 8. Navigate to the ***Devices*** section and flash the Spoke device to perform the task desired
-9. Once flashed, physically attach the Spoke devices to their sensors as directed - provide power and install
+9. Once flashed, physically attach the Spoke devices to their sensors as directed - provide power and install where desired
