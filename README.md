@@ -21,10 +21,10 @@ The ESP8266 Spoke devices that are currently supported are:
 Setting up Autogrow requires Ansible on your local PC and is as follows:
 
 1. Get Raspberry Pi 3 B+ or better with at least a 16GB SD Card
-2. Flash Raspberry Pi OS to the SD Card
+2. Flash Autogrow OS to the SD Card: https://github.com/kenmoini/autogrow-rpi-os
 3. Follow the instructions in `hub/raspi-prep/README.md` to pre-configure the connection requirements.
 4. Attach the Raspberry Pi to your network via Ethernet
-5. Run the `hub/ansible-configuration/configure.yaml` Ansible Playbook on your local PC
+5. Run the `hub/ansible-configuration/configure.yaml` Ansible Playbook on your local PC with something like `ansible-playbook -i inventory configure.yaml`
 6. Connect a Spoke device to the Raspberry Pi via FTDI Adapter
 7. Connect your PC to the Wifi Network provided by the hub and access the web interface by navigating to `http://hub.aghub-local`
 8. Navigate to the ***Devices*** section and flash the Spoke device to perform the task desired
