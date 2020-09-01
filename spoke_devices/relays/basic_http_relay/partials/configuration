@@ -1,0 +1,21 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+
+#ifndef STASSID
+#define STASSID "AP_SSID_HERE"
+#define STAPSK  "AP_PSK_HERE"
+#endif
+
+#define RELAY_PIN RELAY_PIN_HERE
+#define ONBOARD_LED ONBOARD_LED_HERE
+
+#define MDNS_NAME "MDNS_NAME_HERE"
+
+#define SERIAL_BAUDRATE 115200
+
+const char *ssid = STASSID;
+const char *password = STAPSK;
+
+ESP8266WebServer server(SERVER_PORT_HERE);

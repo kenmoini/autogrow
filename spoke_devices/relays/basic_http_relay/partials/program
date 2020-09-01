@@ -1,0 +1,83 @@
+// -----------------------------------------------------------------------------
+// Wifi Initialization
+// -----------------------------------------------------------------------------
+
+void wifiSetup()
+{
+  // Set WIFI module to STA mode
+  WiFi.mode(WIFI_STA);
+
+  // Connect
+  Serial.printf("[WIFI] Connecting to %s ", STASSID);
+  WiFi.begin(STASSID, STAPSK);
+
+  // Wait
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    digitalWrite(ONBOARD_LED, HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED, LOW);
+    delay(100);
+  }
+  Serial.println();
+
+  // Connected!
+  Serial.printf("[WIFI] STATION Mode, SSID: %s, IP address: %s\n", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+  
+  if (MDNS.begin(MDNS_NAME)) {
+    Serial.printf("MDNS responder started with name %s\n", MDNS_NAME);
+  }
+  digitalWrite(ONBOARD_LED, HIGH);
+}
+
+void setup(void) {
+  // Init the Relay Pin
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
+  
+  // Init the LED GPIO Pin
+  pinMode(ONBOARD_LED, OUTPUT);
+  // Setting it to high actually disables the LED...?
+  digitalWrite(ONBOARD_LED, HIGH);
+  
+  // Init serial port and clean garbage
+  Serial.begin(SERIAL_BAUDRATE);
+  Serial.println();
+  Serial.println();
+
+  // Wifi
+  wifiSetup();
+
+  // Index
+  server.on(F("/"), []() {
+    server.send(200, "text/plain", "hello from Autogrow Spoke Relay Device!");
+    Serial.println("index loaded via HTTP\n");
+  });
+  // k8s style healthz lol
+  server.on(F("/healthz"), []() {
+    server.send(200, "text/plain", "ok");
+    Serial.println("healthz loaded via HTTP\n");
+  });
+  // Relay on
+  server.on(F("/relay/on"), []() {
+    server.send(200, "text/plain", "Relay turned on!");
+    Serial.println("relay turned on via HTTP\n");
+    digitalWrite(RELAY_PIN, HIGH);
+    digitalWrite(ONBOARD_LED, LOW);
+  });
+  // Relay off
+  server.on(F("/relay/off"), []() {
+    server.send(200, "text/plain", "Relay turned off!");
+    Serial.println("relay turned off via HTTP\n");
+    digitalWrite(RELAY_PIN, LOW);
+    digitalWrite(ONBOARD_LED, HIGH);
+  });
+  
+  server.begin();
+  Serial.println("HTTP server started\n");
+}
+
+void loop(void) {
+  server.handleClient();
+}

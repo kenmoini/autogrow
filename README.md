@@ -12,7 +12,7 @@ Autogrow is an agriculture automation hub
 
 The ESP8266 Spoke devices that are currently supported are:
 
-- Time-base power control, paired with a DLI Power Controller such as this one: https://www.adafruit.com/product/2935
+- [Finished] Relay for power/solenoid control, paired with a DLI Power Controller such as this one: https://www.adafruit.com/product/2935
 - Temperature Sensor
 - Humidity Sensor
 
