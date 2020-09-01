@@ -8,7 +8,7 @@ pi_user_new_password: somethingSecure
 country_code: US
 locale: "en_US.UTF-8"
 timezone: "America/New_York"
-keyboard_layout: "en"
+keyboard_layout: "us"
 
 eth_interface: eth0
 wlan_interface: wlan0

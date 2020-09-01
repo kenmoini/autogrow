@@ -234,6 +234,13 @@
       systemd:
         daemon_reload: yes
 
+    - name: Unmask, Enable, and Start dnsmasq
+      systemd:
+        name: dnsmasq
+        enabled: yes
+        state: started
+        masked: no
+
     - name: Reboot
       reboot:
         reboot_timeout: 3600
