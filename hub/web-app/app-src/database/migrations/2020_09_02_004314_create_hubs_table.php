@@ -36,6 +36,9 @@ class CreateHubsTable extends Migration
             $table->string('platform_type')->nullable(); //Mostly just RPI versions
             $table->string('autogrow_os_version')->nullable();
 
+            $table->integer('user_id'); //Who added the hub
+            $table->foreign('user_id')->references('id')->on('users');
+
         });
     }
 

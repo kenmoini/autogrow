@@ -19,6 +19,7 @@ class CreateDevicesTable extends Migration
             $table->softDeletes();
 
             $table->integer('hub_id');
+            $table->integer('user_id'); //Who added the device
 
             $table->string('name');
             $table->string('platform_type'); //likely an ESP8266
@@ -30,6 +31,9 @@ class CreateDevicesTable extends Migration
             
             $table->dateTime('adopted_at');
             $table->string('software_version'); //v1.02, this way the system can check for device code updates
+
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('hub_id')->references('id')->on('hubs');
         });
     }
 
